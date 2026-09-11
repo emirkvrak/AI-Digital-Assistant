@@ -1,0 +1,46 @@
+# Environment files and credentials
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+**/keys/*
+!**/keys/.gitkeep
+
+# Python
+.venv/
+**/.venv/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+coverage/
+*.tsbuildinfo
+
+# Runtime data and logs
+*.log
+**/logs/
+**/applog/
+**/uploads/*
+!**/uploads/.gitkeep
+**/qa_prompt_log.txt
+
+# Editors and OS files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Local Docker data
+*.mongodb/
