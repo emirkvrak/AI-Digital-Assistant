@@ -1,5 +1,3 @@
-/* file: frontend/src/App.module.css */
-
 .App {
     display: flex;
     flex-direction: row;
@@ -147,7 +145,6 @@
     height: calc(100% - 76px);
   }
   
-  /* LanguageSwitcherButton */
   .LanguageSwitcherButton {
     background: none;
     border: none;

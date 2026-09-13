@@ -1,8 +1,8 @@
-# file: backend/services/upload/file_validation.py
-
 import os
 import uuid
 from datetime import datetime
+from bson import ObjectId
+from bson.errors import InvalidId
 from flask import g, jsonify, current_app
 from werkzeug.utils import secure_filename
 from core.database.mongo import get_uploads_collection, get_chat_rooms_collection
@@ -26,6 +26,17 @@ def validate_and_save_file(req):
         }
         result = chat_rooms.insert_one(new_room)
         chatroom_id = str(result.inserted_id)
+    else:
+        try:
+            room = chat_rooms.find_one({
+                "_id": ObjectId(chatroom_id),
+                "user_id": g.user_id,
+            })
+        except InvalidId:
+            return (jsonify({"message": "invalid_chatroom_id"}), 400)
+
+        if not room:
+            return (jsonify({"message": "chat_room_not_found"}), 404)
 
     file.seek(0, os.SEEK_END)
     file_size = file.tell() / (1024 * 1024)

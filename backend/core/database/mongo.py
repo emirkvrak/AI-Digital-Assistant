@@ -1,5 +1,3 @@
-#backend/core/database/mongo.py
-
 from pymongo import MongoClient
 from config.config import Config
 

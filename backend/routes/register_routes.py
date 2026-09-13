@@ -1,5 +1,3 @@
-# file: backend/routes/register_routes.py
-
 from flask import Blueprint
 from controllers.chat import (
     chat_room_controller,
@@ -14,7 +12,6 @@ def register_routes(app):
     auth_bp = Blueprint("auth_bp", __name__)
     chat_bp = Blueprint("chat_bp", __name__)
 
-    # 🔵 Authentication Routes (auth_bp)
     auth_bp.route("/login", methods=["POST"])(auth_controller.login)
     auth_bp.route("/register", methods=["POST"])(auth_controller.register)
     auth_bp.route("/me", methods=["GET"])(auth_controller.get_current_user)
@@ -26,7 +23,6 @@ def register_routes(app):
     auth_bp.route("/refresh", methods=["POST"])(auth_controller.refresh)
     auth_bp.route("/logout", methods=["POST"])(auth_controller.logout)
 
-    # 🟢 Chat Routes (chat_bp)
     chat_bp.route("/fetch-messages", methods=["GET"])(chat_message_controller.fetch_messages)
     chat_bp.route("/send-message", methods=["POST"])(chat_message_controller.send_message)
 
@@ -38,8 +34,7 @@ def register_routes(app):
     chat_bp.route("/delete-file", methods=["POST"])(chat_file_controller.delete_file)
     chat_bp.route("/rename-file", methods=["POST"])(chat_file_controller.rename_file)
 
-    # ✅ Blueprint'leri Uygulamaya Kaydet
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(chat_bp, url_prefix="/chat")
-    app.register_blueprint(upload_bp, url_prefix="/chat")      # örnek: /chat/upload-and-chat
+    app.register_blueprint(upload_bp, url_prefix="/chat")
     app.register_blueprint(document_bp, url_prefix="/documents")

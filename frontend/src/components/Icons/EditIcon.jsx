@@ -1,4 +1,3 @@
-// src/components/Icons/EditIcon.jsx
 export function EditIcon({ size = 24, fill = "#0d0d0d", ...props }) {
   return (
     <svg

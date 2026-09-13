@@ -1,5 +1,3 @@
-# file: backend/core/security/auth_decorator.py
-
 from functools import wraps
 from flask import request, g
 from core.security.security import decode_token
@@ -15,7 +13,6 @@ def require_auth(func):
 
         decoded = decode_token(token)
 
-        # ✅ Hata varsa direkt döndür
         if not decoded or not isinstance(decoded, dict) or decoded.get("error"):
             return error_response(decoded.get("error", "token_invalid"), 403)
 

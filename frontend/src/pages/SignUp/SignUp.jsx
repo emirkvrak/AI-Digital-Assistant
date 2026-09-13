@@ -1,5 +1,3 @@
-/* file:frontend/src/pages/SignUp/SignUp.jsx */
-
 import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
@@ -14,14 +12,15 @@ import { Input } from "../../components/Shared/Input";
 import { FormWrapper } from "../../components/Shared/FormWrapper";
 import { EyeIcon, EyeOffIcon } from "../../components/Icons";
 
-import { useUserStore } from "../../store/useUserStore"; // ✅ Zustand import
+import { useUserStore } from "../../store/useUserStore";
 import { toast } from 'react-toastify';
+
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 const SignUp = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
-  // Zustand setter'ları
   const setUserEmail = useUserStore(state => state.setUserEmail);
   const setIsAuthenticated = useUserStore(state => state.setIsAuthenticated);
 
@@ -52,8 +51,7 @@ const SignUp = () => {
         lang: i18n.language
       });
 
-      // ✅ Zustand'a bilgileri yaz
-      setUserEmail(response.data.data.email); // backend "data.email" döndürüyor olmalı
+      setUserEmail(response.data.data.email);
       setIsAuthenticated(true);
 
       toast.success(t(response.data.message || 'registration_successful'));
@@ -70,8 +68,7 @@ const SignUp = () => {
       const response = await instance.post('/auth/google-login', { token: googleToken });
 
       if (response.data.success) {
-        // ✅ Zustand'a bilgileri yaz
-        setUserEmail(response.data.data.email); // backend "data.email" döndürmeli
+        setUserEmail(response.data.data.email);
         setIsAuthenticated(true);
 
         navigate('/chat');
@@ -105,16 +102,18 @@ const SignUp = () => {
         <p>{t('social_signup_prompt')}</p>
 
         <div className={styles["social-buttons"]}>
-          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-            <GoogleLogin
-              onSuccess={(credentialResponse) => {
-                handleGoogleLogin(credentialResponse.credential);
-              }}
-              onError={() => {
-                console.log("Login Failed");
-              }}
-            />
-          </GoogleOAuthProvider>
+          {googleClientId && (
+            <GoogleOAuthProvider clientId={googleClientId}>
+              <GoogleLogin
+                onSuccess={(credentialResponse) => {
+                  handleGoogleLogin(credentialResponse.credential);
+                }}
+                onError={() => {
+                  toast.error(t('google_login_failed'));
+                }}
+              />
+            </GoogleOAuthProvider>
+          )}
         </div>
 
         <form onSubmit={handleRegister}>

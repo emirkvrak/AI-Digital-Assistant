@@ -1,5 +1,3 @@
-# file: backend/core/extractors/word_extractor.py
-
 from core.extractors.base_extractor import BaseExtractor
 from docx import Document
 
@@ -10,5 +8,5 @@ class WordExtractor(BaseExtractor):
             text_parts = [para.text.strip() for para in doc.paragraphs if para.text.strip()]
             return " ".join(" ".join(text_parts).split())
         except Exception as e:
-            print(f"❌ WordExtractor HATA: {e}")
+            print(f"❌ Word metni çıkarma hatası: {e}")
             return ""

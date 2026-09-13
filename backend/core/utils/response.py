@@ -1,5 +1,3 @@
-# file: backend/utils/response.py
-
 from flask import jsonify
 
 def success_response(message, data=None):

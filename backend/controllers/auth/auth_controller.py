@@ -1,5 +1,3 @@
-# file: backend/controllers/auth/auth_controller.py
-
 from flask import g, redirect, request, current_app, make_response
 from core.database.mongo import get_users_collection
 from core.security.security import (
@@ -18,13 +16,13 @@ users = get_users_collection()
 
 
 def login():
-    email = "unknown"  # 💡 email her durumda tanımlı olsun
+    email = "unknown"
     try:
         data = request.get_json()
         email = data.get('email')
         password = data.get('password')
 
-        current_app.logger.info(f"Login attempt from {email}")
+        current_app.logger.info(f"Giriş denemesi: {email}")
 
         user = users.find_one({"email": email})
         if not user or not check_password(password, user["password"]):
@@ -41,11 +39,11 @@ def login():
         response.set_cookie('access_token', access_token, httponly=True, secure=secure_flag, samesite='Strict')
         response.set_cookie('refresh_token', refresh_token, httponly=True, secure=secure_flag, samesite='Strict', path='/auth/refresh')
 
-        current_app.logger.info(f"Login successful for {email}")
+        current_app.logger.info(f"Giriş başarılı: {email}")
         return response
 
     except Exception as e:
-        current_app.logger.error(f"Login Error for {email}: {e}")
+        current_app.logger.error(f"Giriş hatası ({email}): {e}")
         return error_response("login_error", 500)
 
 
@@ -59,7 +57,7 @@ def register():
 
         lang = request.json.get('lang', 'tr')
 
-        current_app.logger.info(f"Registration attempt for {email}")
+        current_app.logger.info(f"Kayıt denemesi: {email}")
 
         result = register_user(first_name, last_name, email, password, current_app, lang)
 
@@ -69,7 +67,7 @@ def register():
         return success_response(result.get("message", "registration_successful"), 201)
 
     except Exception as e:
-        current_app.logger.error(f"Register Error: {e}")
+        current_app.logger.error(f"Kayıt hatası: {e}")
         return error_response("registration_error", 500)
 
 
@@ -98,7 +96,7 @@ def verify_email():
         return redirect(f"{Config.FRONTEND_URL}/signin?error=user_not_found")
 
     except Exception as e:
-        current_app.logger.error(f"Verify Email Error: {e}")
+        current_app.logger.error(f"E-posta doğrulama hatası: {e}")
         if request.accept_mimetypes.accept_json:
             return error_response("email_verification_failed", 500)
         return redirect(f"{Config.FRONTEND_URL}/signin?error=email_verification_failed")
@@ -108,11 +106,15 @@ def forgot_password():
     try:
         email = request.json.get('email')
         lang = request.json.get('lang', 'tr') 
-        if send_password_reset_email(email, current_app, lang):
+        result = send_password_reset_email(email, current_app, lang)
+        if result.get("success"):
             return success_response("reset_link_sent")
-        return error_response("email_not_found", 404)
+        return error_response(
+            result.get("message", "email_not_found"),
+            result.get("status_code", 404)
+        )
     except Exception as e:
-        current_app.logger.error(f"Forgot Password Error for {email}: {e}")
+        current_app.logger.error(f"Şifremi unuttum işlemi hatası ({email}): {e}")
         return error_response("forgot_password_error", 500)
 
 
@@ -129,7 +131,7 @@ def reset_password_route():
             result.get("status_code", 400)
         )
     except Exception as e:
-        current_app.logger.error(f"Reset Password Route Error: {e}")
+        current_app.logger.error(f"Şifre sıfırlama route hatası: {e}")
         return error_response("password_reset_error", 500)
 
 
@@ -152,7 +154,7 @@ def google_login():
 
         return error_response("google_login_failed", 400)
     except Exception as e:
-        current_app.logger.error(f"Google Login Error: {e}")
+        current_app.logger.error(f"Google ile giriş hatası: {e}")
         return error_response("google_login_error", 500)
 
 @require_auth
@@ -166,7 +168,7 @@ def get_current_user():
         return success_response("user_info_fetched", {"email": email})
 
     except Exception as e:
-        current_app.logger.error(f"Get Current User Error: {e}")
+        current_app.logger.error(f"Mevcut kullanıcı bilgisi alınamadı: {e}")
         return error_response("user_info_error", 500)
 
 
@@ -178,7 +180,7 @@ def change_password():
             return error_response("token_missing", 403)
 
         decoded = decode_token(token)
-        if not decoded or not isinstance(decoded, dict):
+        if not decoded or not isinstance(decoded, dict) or decoded.get("error") or not decoded.get("email"):
             return error_response("token_invalid", 403)
 
         email = decoded.get("email")
@@ -211,7 +213,7 @@ def change_password():
         return response
 
     except Exception as e:
-        current_app.logger.error(f"Change Password Error: {e}")
+        current_app.logger.error(f"Şifre değiştirme hatası: {e}")
         return error_response("change_password_error", 500)
 
 
@@ -222,7 +224,7 @@ def refresh():
             return error_response("token_missing", 403)
 
         decoded = decode_token(refresh_token)
-        if not decoded or not isinstance(decoded, dict):
+        if not decoded or not isinstance(decoded, dict) or decoded.get("error") or not decoded.get("email"):
             return error_response("token_invalid", 403)
 
         email = decoded.get("email")
@@ -233,7 +235,7 @@ def refresh():
         response.set_cookie('access_token', new_access_token, httponly=True, secure=secure_flag, samesite='Strict')
         return response
     except Exception as e:
-        current_app.logger.error(f"Refresh Token Error: {e}")
+        current_app.logger.error(f"Token yenileme hatası: {e}")
         return error_response("token_refresh_error", 500)
 
 
@@ -245,5 +247,5 @@ def logout():
         response.set_cookie('refresh_token', '', expires=0, httponly=True, secure=secure_flag, samesite='Strict', path='/auth/refresh')
         return response
     except Exception as e:
-        current_app.logger.error(f"Logout Error: {e}")
+        current_app.logger.error(f"Çıkış yapma hatası: {e}")
         return error_response("logout_error", 500)

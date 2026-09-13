@@ -1,4 +1,3 @@
-// src/components/Icons/CollapseIcon.jsx
 
 export function CollapseIcon({ size = 24, fill = "#e3e3e3", ...props }) {
   return (

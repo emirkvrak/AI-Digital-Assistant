@@ -1,6 +1,4 @@
-// file: frontend/src/components/Sidebar/RightSidebar.jsx
-
-import instance from "../../api/axiosInstance";
+﻿import instance from "../../api/axiosInstance";
 import { uploadDocumentAndGetSummary } from "../../api/documentApi";
 import {
   useRef,
@@ -13,7 +11,6 @@ import {
 } from "react";
 import styles from "./RightSidebar.module.css";
 import { useTranslation } from "react-i18next";
-import i18n from "../../locales/i18n";
 
 import { useUserStore } from "../../store/useUserStore";
 
@@ -26,6 +23,7 @@ import {
   EditIcon,
   TrashIcon,
 } from "../Icons";
+import { getPendingResources } from "../../utils/storage";
 
 const initialState = {
   resources: [],
@@ -78,11 +76,9 @@ function RightSidebarComponent({
   toggleRightSidebar,
   aktifChatRoomId,
   setAktifChatRoomId,
-  chatRooms,
   setChatRooms,
   uploadedFiles,
   setUploadedFiles,
-  onSummaryReceived,
   onAutoSummarize,
   isAiTyping,
 }) {
@@ -96,9 +92,7 @@ function RightSidebarComponent({
   const [isDragOver, setIsDragOver] = useState(false);
 
   const isDuplicateUpload = (filenameOrUrl) => {
-    const allPending = JSON.parse(
-      localStorage.getItem("pendingResources") || "[]"
-    );
+    const allPending = getPendingResources();
 
     return (
       state.resources.some(
@@ -129,18 +123,17 @@ function RightSidebarComponent({
       if (newsSources.some((source) => hostname.includes(source)))
         return "news";
       return "web";
-    } catch (e) {
+    } catch {
       return "web";
     }
   };
 
-  // *** ÖNEMLİ: Sayfa yenilendiğinde uploadedFiles boşsa pendingResources'u yükle
   useEffect(() => {
     if (
       (!uploadedFiles || uploadedFiles.length === 0) &&
       localStorage.getItem("pendingResources")
     ) {
-      const pending = JSON.parse(localStorage.getItem("pendingResources"));
+      const pending = getPendingResources();
 
       if (pending.length > 0) {
         const pendingFilesAsObjects = pending.map((filename) => ({
@@ -153,13 +146,10 @@ function RightSidebarComponent({
         setUploadedFiles(pendingFilesAsObjects);
       }
     }
-  }, []);
+  }, [setUploadedFiles, uploadedFiles]);
 
-  // uploadedFiles veya localStorage'daki pendingResources'u state.resources ve selectedResources'a set et
   useEffect(() => {
-    const pending = JSON.parse(
-      localStorage.getItem("pendingResources") || "[]"
-    );
+    const pending = getPendingResources();
 
     const mergedResources = [];
     const filenamesSeen = new Set();
@@ -173,7 +163,7 @@ function RightSidebarComponent({
         displayName: file.displayName || file.original_name || "Unnamed",
         raw_text: file.raw_text || "",
         isPending: !!file.isPending,
-        selected: file.selected === true, // sadece doğruysa ata
+        selected: file.selected === true,
       });
     });
 
@@ -199,9 +189,7 @@ function RightSidebarComponent({
   }, [uploadedFiles, aktifChatRoomId]);
 
   useEffect(() => {
-    const currentPending = JSON.parse(
-      localStorage.getItem("pendingResources") || "[]"
-    );
+    const currentPending = getPendingResources();
 
     const stillPending = uploadedFiles
       .filter((file) => file.isPending)
@@ -236,9 +224,9 @@ function RightSidebarComponent({
   }, [state.resources]);
 
   const handleFileUpload = async (event) => {
-    setIsUploading(true);
-
     if (!event?.target?.files?.length) return;
+
+    setIsUploading(true);
 
     let chatRoomIdToUse = aktifChatRoomId;
     if (!chatRoomIdToUse) {
@@ -262,7 +250,7 @@ function RightSidebarComponent({
           toast.error(t("chat_creation_failed"));
           return;
         }
-      } catch (err) {
+      } catch {
         toast.error(t("chat_creation_failed"));
         return;
       }
@@ -282,9 +270,7 @@ function RightSidebarComponent({
       return;
     }
 
-    const pendingList = JSON.parse(
-      localStorage.getItem("pendingResources") || "[]"
-    );
+    const pendingList = getPendingResources();
 
     for (const file of files) {
       const sizeMB = file.size / (1024 * 1024);
@@ -301,7 +287,6 @@ function RightSidebarComponent({
 
       toast.info(`${t("file_upload_in_progress")}: ${file.name}`);
 
-      // Geçici kaynak ekle
       const tempResource = {
         filename: file.name,
         displayName: file.name,
@@ -310,13 +295,15 @@ function RightSidebarComponent({
         selected: true,
       };
 
+      dispatch({ type: "APPEND_RESOURCE", payload: tempResource });
+
       localStorage.setItem(
         "pendingResources",
         JSON.stringify([...pendingList, file.name])
       );
 
       try {
-        const { summary, filename, original_name, raw_text } =
+        const { filename, original_name, raw_text } =
           await uploadDocumentAndGetSummary(file, chatRoomIdToUse);
 
         if (setUploadedFiles && raw_text && raw_text.trim()) {
@@ -401,7 +388,6 @@ function RightSidebarComponent({
           });
           dispatch({ type: "SET_MENU_OPEN", payload: null });
 
-          // ✅ uploadedFiles listesinden de çıkar
           setUploadedFiles((prev) =>
             prev.filter((file) => file.filename !== filename)
           );
@@ -424,7 +410,7 @@ function RightSidebarComponent({
       state.selectedResources,
       uploadedFiles,
       t,
-      setUploadedFiles, // ✅ unutma
+      setUploadedFiles,
     ]
   );
 
@@ -442,7 +428,6 @@ function RightSidebarComponent({
 
       dispatch({ type: "SET_SELECTED", payload: newSelectedResources });
 
-      // ✅ uploadedFiles içindeki `selected` bayrağını da güncelle
       setUploadedFiles((prev) =>
         prev.map((file) =>
           file.filename === resource.filename
@@ -451,7 +436,6 @@ function RightSidebarComponent({
         )
       );
 
-      // ✅ state.resources içinde de selected alanını güncelle ki render senkron olsun
       dispatch({
         type: "UPDATE_RESOURCE",
         payload: {
@@ -538,8 +522,6 @@ function RightSidebarComponent({
   );
 
   const handleLinkUpload = async () => {
-    setIsUploading(true);
-
     const url = state.urlInput.trim();
     if (!url) return toast.error(t("invalid_link_input"));
 
@@ -548,13 +530,13 @@ function RightSidebarComponent({
       return;
     }
 
-    const pending = JSON.parse(
-      localStorage.getItem("pendingResources") || "[]"
-    );
+    const pending = getPendingResources();
     if (pending.includes(url)) {
       toast.warn(t("file_already_uploaded"));
       return;
     }
+
+    setIsUploading(true);
 
     let chatRoomIdToUse = aktifChatRoomId;
 
@@ -578,7 +560,7 @@ function RightSidebarComponent({
           toast.error(t("chat_creation_failed"));
           return;
         }
-      } catch (err) {
+      } catch {
         toast.error(t("chat_creation_failed"));
         return;
       }
@@ -646,7 +628,7 @@ function RightSidebarComponent({
               original_name: url,
               displayName: url,
               raw_text,
-              isPending: false, // DÜZENLENDİ: yükleme tamamlandıysa false olmalı
+              isPending: false,
             },
           ]);
         }
@@ -686,10 +668,9 @@ function RightSidebarComponent({
         handleFileUpload(syntheticEvent);
       }}
     >
-      {/* Drag&Drop overlay */}
       {isDragOver && (
         <div className={styles.DragOverlay}>
-          <div className={styles.DragText}>📂 {t("drop_file_here")}</div>
+          <div className={styles.DragText}>ğŸ“‚ {t("drop_file_here")}</div>
         </div>
       )}
 
@@ -707,7 +688,7 @@ function RightSidebarComponent({
             <input
               type="file"
               multiple
-              accept=".pdf,.mp4,.mp3,.docx,.pptx,.jpg,.jpeg,.png"
+              accept=".pdf,.mp3,.docx,.pptx,.jpg,.jpeg,.png"
               onChange={handleFileUpload}
               className={styles.FileInput}
             />
@@ -727,7 +708,7 @@ function RightSidebarComponent({
               className={styles.UploadLinkButton}
               onClick={handleLinkUpload}
             >
-              {state.isLoading ? "⏳" : t("upload")}
+              {state.isLoading ? "â³" : t("upload")}
             </button>
           </div>
 
@@ -756,7 +737,6 @@ function RightSidebarComponent({
                       payload: newSelected,
                     });
 
-                    // ✅ uploadedFiles içinde selected alanını güncelle
                     setUploadedFiles((prev) =>
                       prev.map((file) => ({
                         ...file,
@@ -764,7 +744,6 @@ function RightSidebarComponent({
                       }))
                     );
 
-                    // ✅ state.resources içinde selected alanı güncellenmeli
                     state.resources.forEach((resource) => {
                       dispatch({
                         type: "UPDATE_RESOURCE",
@@ -837,7 +816,7 @@ function RightSidebarComponent({
                                 <span className={styles.ResourceName}>
                                   {resource.isPending ? (
                                     <span className={styles.SpinnerText}>
-                                      ⏳ {t("uploading")}
+                                      â³ {t("uploading")}
                                     </span>
                                   ) : (
                                     resource.displayName
@@ -894,7 +873,7 @@ function RightSidebarComponent({
                                 className={`${styles.TooltipFixed} ${styles.Bottom}`}
                               >
                                 <div className={styles.TooltipHeader}>
-                                  🧾 {resource.displayName}
+                                  ğŸ§¾ {resource.displayName}
                                 </div>
                                 <div className={styles.TooltipBody}>
                                   <strong>{t("full_content")}:</strong>
@@ -930,7 +909,7 @@ function RightSidebarComponent({
                   }
 
                   const prompt = t("auto_summary_prompt");
-                  onAutoSummarize(prompt, validSelectedFiles); // 👈 otomatik prompt
+                  onAutoSummarize(prompt, validSelectedFiles);
                 }}
               >
                 {t("summarize_documents")}
@@ -944,3 +923,4 @@ function RightSidebarComponent({
 }
 
 export const RightSidebar = memo(RightSidebarComponent);
+

@@ -1,5 +1,3 @@
-# file: backend/core/mail/templates.py
-
 email_texts = {
     "tr": {
         "verify_subject": "Hesabınızı Doğrulayın",

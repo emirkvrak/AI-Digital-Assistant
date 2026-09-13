@@ -1,10 +1,7 @@
-# file: backend/core/extractors/news_extractor.py
-
 from core.extractors.base_extractor import BaseExtractor
 from newspaper import Article
 import nltk
 
-# İlk kez çalıştıranlar için punkt indir
 try:
     nltk.data.find("tokenizers/punkt")
 except LookupError:
@@ -20,5 +17,5 @@ class NewsExtractor(BaseExtractor):
             text = article.text
             return " ".join(text.replace("\n", " ").strip().split())
         except Exception as e:
-            print(f"❌ NewsExtractor HATA: {e}")
+            print(f"❌ Haber metni çıkarma hatası: {e}")
             return ""

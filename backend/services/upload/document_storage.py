@@ -1,5 +1,3 @@
-# file: backend/services/upload/document_storage.py
-
 from flask import g, jsonify, current_app
 from datetime import datetime
 from bson import ObjectId
@@ -33,7 +31,7 @@ def save_document_to_db(filename, original_name, user_id, chatroom_id, text, sum
         raise
 
 
-def store_document_and_trigger_summary(file, chatroom_id, original_filename, unique_filename, text, language):
+def store_document_and_trigger_summary(chatroom_id, original_filename, unique_filename, text, language):
     try:
         document_id = save_document_to_db(
             filename=unique_filename,
@@ -68,7 +66,6 @@ def store_document_and_trigger_summary(file, chatroom_id, original_filename, uni
             user_id=g.user_id,
             chatroom_id=chatroom_id,
             document_id=document_id,
-            raw_text=text,
             language=language
         )
 
@@ -84,7 +81,7 @@ def store_document_and_trigger_summary(file, chatroom_id, original_filename, uni
         return jsonify({"message": "document_save_failed"}), 500
 
 
-def store_link_document_and_trigger_summary(url, chatroom_id, user_id, file_type, text, language):
+def store_link_document_and_trigger_summary(url, chatroom_id, user_id, text, language):
     try:
         document_id = save_document_to_db(
             filename=url,
@@ -119,7 +116,6 @@ def store_link_document_and_trigger_summary(url, chatroom_id, user_id, file_type
             user_id=user_id,
             chatroom_id=chatroom_id,
             document_id=document_id,
-            raw_text=text,
             language=language
         )
 

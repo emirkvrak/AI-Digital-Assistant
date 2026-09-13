@@ -1,5 +1,3 @@
-/* file:frontend//src/pages/SignIn/SignIn.module.css */
-
 .google-loading {
   text-align: center;
   font-size: 14px;
@@ -13,13 +11,13 @@
   align-items: center;
   height: 100vh;
 
-  background-image: url("/illustration.png"); /* Set the illustration as the background */
-  background-size: cover; /* Make the background cover the entire container */
-  background-position: center; /* Center the background image */
-  background-repeat: no-repeat; /* Prevent the image from repeating */
+  background-image: url("/illustration.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-/* Add a pseudo-element to apply the blur effect */
+/* Arka plan efekti için sözde element kullanılır */
 .sign-in-container::before {
   content: "";
   position: absolute;
@@ -27,32 +25,28 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: inherit; /* Inherit the background image from the parent */
+  background-image: inherit; /* Arka plan görselini üst elementten alır */
   background-size: cover;
   background-position: center;
-  /*filter: blur(8px); /* Apply blur effect */
-  z-index: 0; /* Ensure the blur is behind the content */
+  z-index: 0; /* Arka plan içeriğin arkasında kalır */
 }
 
-/* Remove the illustration section since it's now a background */
 .illustration-section {
-  display: none; /* Hide the illustration section since we're using it as a background */
+  display: none;
 }
 
-/* Update the form section to ensure readability */
 .form-section {
   flex: 1;
   padding: 40px;
-  background-color: #fff; /* Semi-transparent white background for contrast */
+  background-color: #fff; /* İçeriğin daha rahat okunması için beyaz arka plan */
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   max-width: 400px; /* Formun genişliğini sınırlandırıyoruz */
   order: 2; /* Formu sağa almak için */
-  position: relative; /* Ensure the form is above the blurred background */
-  z-index: 1; /* Bring the form section above the blurred background */
+  position: relative;
+  z-index: 1;
 }
 
-/* Rest of your CSS remains the same */
 .form-section h1 {
   font-size: 2rem;
   margin-bottom: 10px;
@@ -67,7 +61,7 @@
 
 .social-buttons {
   display: flex;
-  justify-content: center; /* ✅ Ortalar */
+  justify-content: center;
   align-items: center;
   margin-bottom: 20px;
 }
@@ -184,7 +178,7 @@
 .forgot-password a {
   color: #007bff;
   text-decoration: none;
-  font-weight: 500; /*  font-size yerine font-weight düzeltildi ona bak*/
+  font-weight: 500;
 }
 
 .forgot-password a:hover {

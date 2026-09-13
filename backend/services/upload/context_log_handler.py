@@ -1,5 +1,3 @@
-# file: backend/services/upload/context_log_handler.py
-
 from datetime import datetime
 from bson import ObjectId
 from flask import current_app
@@ -8,7 +6,7 @@ from core.database.mongo import get_context_logs_collection
 
 context_logs = get_context_logs_collection()
 
-def append_context_log(user_id, chatroom_id, document_id, raw_text, language):
+def append_context_log(user_id, chatroom_id, document_id, language):
     try:
         context_logs.update_one(
             {"chat_room_id": ObjectId(chatroom_id)},
@@ -28,4 +26,4 @@ def append_context_log(user_id, chatroom_id, document_id, raw_text, language):
             upsert=True
         )
     except DuplicateKeyError:
-        current_app.logger.error(f"Duplicate context_log kaydı oluştu: {chatroom_id}")
+        current_app.logger.error(f"Aynı bağlam kaydı zaten var: {chatroom_id}")

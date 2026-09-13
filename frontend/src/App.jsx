@@ -1,11 +1,8 @@
-/* file: frontend/src/App.jsx */
-
 import './locales/i18n';
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import instance from "./api/axiosInstance";
 
-// Pages
 import SignIn from "./pages/SignIn/SignIn";
 import SignUp from "./pages/SignUp/SignUp";
 import VerifyEmail from "./pages/VerifyEmail/VerifyEmail";
@@ -14,7 +11,7 @@ import ResetPassword from './pages/ResetPassword/ResetPassword';
 import ProfilePage from "./pages/ProfilePage/ProfilePage";
 import ChatPage from "./features/chat/ChatPage";
 
-import { useUserStore } from "./store/useUserStore"; // ✅ Zustand import
+import { useUserStore } from "./store/useUserStore";
 
 
 import { ToastContainer } from 'react-toastify';

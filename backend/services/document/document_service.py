@@ -1,5 +1,3 @@
-# file: backend/services/document/document_service.py
-
 from core.extractors.pdf_extractor import PDFExtractor
 from core.extractors.word_extractor import WordExtractor
 from core.extractors.pptx_extractor import PPTXExtractor
@@ -27,7 +25,7 @@ class DocumentService:
     }
 
     @staticmethod
-    def extract_text_from_file(file_storage, file_type=None, preferred_lang="auto") -> str:
+    def extract_text_from_file(file_storage, file_type=None) -> str:
         if file_type is None:
             filename = file_storage.filename
             file_ext = filename.split('.')[-1].lower()
@@ -39,10 +37,4 @@ class DocumentService:
         if not extractor_class:
             raise ValueError(f"Desteklenmeyen dosya türü: .{file_ext}")
 
-        # Sadece dil parametresi destekleyen türler için ilet
-        if file_ext in ["mp3", "wav", "m4a", "ogg", "youtube"]:
-            extractor = extractor_class(file_storage)
-        else:
-            extractor = extractor_class(file_storage)
-
-        return extractor.extract_text()
+        return extractor_class(file_storage).extract_text()

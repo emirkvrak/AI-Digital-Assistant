@@ -1,5 +1,3 @@
-// frontend/src/api/axiosInstance.js
-
 import axios from "axios";
 import { useUserStore } from "../store/useUserStore";
 import { toast } from "react-toastify";
@@ -29,7 +27,7 @@ instance.interceptors.response.use(
         const res = await instance.post("/auth/refresh");
 
         if (res.status === 200) {
-          return instance(originalRequest); // ✅ Token yenilendiyse isteği tekrar gönder
+          return instance(originalRequest);
         }
       } catch (refreshError) {
         console.error("Refresh token expired:", refreshError);
@@ -42,14 +40,12 @@ instance.interceptors.response.use(
           toast.error(i18n.t("logout_failed"));
         }
 
-        // ✅ Oturum süresi doldu uyarısı
         toast.error(i18n.t("session_expired"));
 
         const { setUserEmail, setIsAuthenticated } = useUserStore.getState();
         setUserEmail("");
         setIsAuthenticated(false);
 
-        // ✅ 2 saniye bekle → sonra yönlendir
         setTimeout(() => {
           window.location.href = "/signin";
         }, 2000);
@@ -58,7 +54,6 @@ instance.interceptors.response.use(
       }
     }
 
-    // ✅ Hata mesajı varsa i18n çevirisi uygula
     const rawMessage = error.response?.data?.message;
     const fallbackMessage = i18n.t("unknown_error");
 

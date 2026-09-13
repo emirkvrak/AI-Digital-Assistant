@@ -1,5 +1,3 @@
-# file: backend/controllers/chat/chat_message_controller.py
-
 from flask import request, g, current_app
 from datetime import datetime
 from bson import ObjectId
@@ -8,7 +6,6 @@ from core.database.mongo import get_chat_rooms_collection, get_messages_collecti
 from core.utils.response import success_response, error_response
 from core.security.auth_decorator import require_auth
 from threading import Thread
-from core.security.security import decode_token
 from services.chat.chat_service import get_user_messages
 from controllers.chat.chat_ai_controller import process_ai_response
 
@@ -19,15 +16,7 @@ messages = get_messages_collection()
 @require_auth
 def fetch_messages():
     try:
-        token = request.cookies.get('access_token')
-        if not token:
-            return error_response("token_missing", 403)
-
-        decoded = decode_token(token)
-        if not decoded:
-            return error_response("invalid_token", 403)
-
-        email = decoded.get("email")
+        email = g.user_email
         room_id = request.args.get("room_id")
         if not room_id:
             return error_response("room_id_missing", 400)
@@ -46,7 +35,7 @@ def fetch_messages():
         return success_response("messages_fetched", {"messages": safe_messages})
 
     except Exception as e:
-        current_app.logger.error(f"Fetch Messages Error: {e}")
+        current_app.logger.error(f"Mesajları getirme hatası: {e}")
         return error_response("messages_fetch_failed", 500)
 
 
@@ -57,7 +46,7 @@ def send_message():
         data = request.get_json()
         room_id = data.get('room_id')
         content = data.get('content', '').strip()
-        selected_files = data.get('selected_files', [])  # ✅ Yeni parametre alındı
+        selected_files = data.get('selected_files', [])
 
         if not room_id or not content:
             return error_response("missing_room_data", 400)
@@ -86,7 +75,6 @@ def send_message():
             {"$push": {"messages": inserted_user_msg.inserted_id}}
         )
 
-        # ✅ Flask context + selected_files aktarılıyor
         Thread(
             target=run_ai_with_context,
             args=(content, room_obj_id, selected_files, current_app._get_current_object())
@@ -98,7 +86,7 @@ def send_message():
         })
 
     except Exception as e:
-        current_app.logger.error(f"Send Message Error: {e}")
+        current_app.logger.error(f"Mesaj gönderme hatası: {e}")
         return error_response("message_send_failed", 500)
 
 

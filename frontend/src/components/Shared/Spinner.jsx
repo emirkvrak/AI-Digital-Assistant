@@ -1,12 +1,8 @@
-// src/components/Shared/Spinner.jsx
-import React from "react";
 import { useTranslation } from "react-i18next";
 import "./Spinner.module.css";
 
 const Spinner = () => {
   const { t } = useTranslation();
-
-  console.log("🌀 Spinner rendered"); // ✅ JSX dışında, doğru yer
 
   return (
     <div className="spinner-container">

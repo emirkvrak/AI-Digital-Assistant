@@ -1,5 +1,3 @@
-# file: backend/core/extractors/base_extractor.py
-
 from abc import ABC, abstractmethod
 
 class BaseExtractor(ABC):
@@ -9,7 +7,7 @@ class BaseExtractor(ABC):
             if hasattr(self.file_stream, "seek") and self.file_stream.seekable():
                 self.file_stream.seek(0)
         except Exception:
-            pass  # Örneğin string URL'ler seek desteklemez
+            pass
 
     @abstractmethod
     def extract_text(self) -> str:

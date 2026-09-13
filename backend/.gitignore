@@ -1,0 +1,34 @@
+# Ortam değişkenleri ve gizli bilgiler
+.env
+.env.*
+!.env.example
+
+# Python sanal ortamı ve önbellekler
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Test ve coverage çıktıları
+.coverage
+coverage/
+htmlcov/
+
+# Lokal anahtarlar ve kullanım kayıtları
+keys/*
+!keys/.gitkeep
+
+# Uygulama çalışma verileri
+applog/
+*.log
+uploads/*
+!uploads/.gitkeep
+
+# Editör ve işletim sistemi dosyaları
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp

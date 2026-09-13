@@ -1,9 +1,7 @@
-// file: frontend/src/features/chat/Chat.jsx
-
 import { memo, useEffect, useRef } from "react";
 import styles from "./Chat.module.css";
 import { useTranslation } from "react-i18next";
-import ChatMessage from "./ChatMessage"; // ✅ eklendi
+import ChatMessage from "./ChatMessage";
 
 const ChatComponent = ({ messages, isAiTyping }) => {
   const { t } = useTranslation();
@@ -46,8 +44,7 @@ const ChatComponent = ({ messages, isAiTyping }) => {
             </div>
           ) : (
             <>
-              <ChatMessage role={message.role} content={message.content} />{" "}
-              {/* ✅ eklendi */}
+              <ChatMessage role={message.role} content={message.content} />
               {message.created_at && (
                 <div className={styles.Timestamp}>
                   {formatTime(message.created_at)}

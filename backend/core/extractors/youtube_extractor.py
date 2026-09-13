@@ -1,12 +1,10 @@
-# file: backend/core/extractors/youtube_extractor.py
-
 from core.extractors.base_extractor import BaseExtractor
 import subprocess
 import uuid
 import os
 import time
 import tempfile
-import requests
+from core.utils.http_client import http_client
 
 class YouTubeExtractor(BaseExtractor):
     def __init__(self, file_stream, language_code=None):
@@ -31,7 +29,7 @@ class YouTubeExtractor(BaseExtractor):
                 subprocess.run(command, check=True)
 
                 with open(temp_path, "rb") as f:
-                    upload_res = requests.post(
+                    upload_res = http_client.post(
                         "https://api.assemblyai.com/v2/upload",
                         headers={"authorization": API_KEY},
                         data=f
@@ -48,7 +46,7 @@ class YouTubeExtractor(BaseExtractor):
             if self.language_code and self.language_code not in ["auto", ""]:
                 transcript_payload["language_code"] = self.language_code
 
-            transcript_res = requests.post(
+            transcript_res = http_client.post(
                 "https://api.assemblyai.com/v2/transcript",
                 headers={"authorization": API_KEY, "content-type": "application/json"},
                 json=transcript_payload
@@ -60,7 +58,7 @@ class YouTubeExtractor(BaseExtractor):
             transcript_id = transcript_res.json()["id"]
 
             while True:
-                poll_res = requests.get(
+                poll_res = http_client.get(
                     f"https://api.assemblyai.com/v2/transcript/{transcript_id}",
                     headers={"authorization": API_KEY}
                 ).json()
@@ -74,7 +72,7 @@ class YouTubeExtractor(BaseExtractor):
                 time.sleep(3)
 
         except Exception as e:
-            print("❌ YouTubeExtractor HATA:", str(e))
+            print("❌ YouTube metni çıkarma hatası:", str(e))
             return ""
 
         finally:

@@ -1,5 +1,3 @@
-/* file: frontend/src/pages/VerifyEmail/VerifyEmail.jsx */
-
 import { useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import instance from "../../api/axiosInstance";
@@ -10,18 +8,16 @@ import { toast } from "react-toastify";
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
-  const lang = searchParams.get("lang"); // ✅ dil parametresini al
+  const lang = searchParams.get("lang");
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
 
-  // ✅ Sayfa açıldığında dil ayarla
   useEffect(() => {
     if (lang) {
       i18n.changeLanguage(lang);
     }
-  }, [lang]);
+  }, [lang, i18n]);
 
-  // ✅ Doğrulama işlemi
   useEffect(() => {
     const verify = async () => {
       try {

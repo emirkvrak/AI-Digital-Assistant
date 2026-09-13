@@ -1,5 +1,3 @@
-/* file: frontend/src/components/LanguageSwitcher/LanguageSwitcher.jsx */
-
 import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 
@@ -15,7 +13,7 @@ export function LanguageSwitcher() {
     } else {
       i18n.changeLanguage("tr");
     }
-  }, []);
+  }, [i18n]);
 
   const changeLanguage = (lang) => {
     if (lang !== currentLang) {
@@ -30,9 +28,9 @@ export function LanguageSwitcher() {
       style={{
         fontSize: "16px",
         fontWeight: "normal",
-        display: "flex", // 🔧 Butonları yatay sırala
+        display: "flex",
         alignItems: "center",
-        gap: "8px" // Butonlar arası boşluk
+        gap: "8px"
       }}
     >
       <button

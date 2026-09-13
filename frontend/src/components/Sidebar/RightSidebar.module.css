@@ -1,5 +1,3 @@
-/* file: frontend/src/components/Sidebar/RightSidebar.module.css */
-
 
 .SummarizeButton {
   position: absolute;
@@ -125,8 +123,8 @@
   font-size: 15px;
   margin-bottom: 6px;
   color: #111;
-  white-space: normal;        /* ✅ satır kırılır */
-  word-break: break-word;     /* ✅ uzun kelime gerekirse kırılır */
+  white-space: normal;
+  word-break: break-word;
 }
 
 
@@ -138,9 +136,9 @@
 .TooltipScrollContent {
   max-height: 200px;
   overflow-y: auto;
-  overflow-x: hidden;      /* ✅ yatay scroll kapatıldı */
-  white-space: pre-wrap;   /* ✅ satır sonlarında aşağı iner */
-  word-break: break-word;  /* ✅ çok uzun kelimeler aşağı iner */
+  overflow-x: hidden;
+  white-space: pre-wrap;
+  word-break: break-word;
   padding-right: 6px;
   line-height: 1.5;
   font-family: 'Segoe UI', sans-serif;
@@ -201,7 +199,6 @@
 }
 
 .UploadButton > button {
-  /* Örneğin mavi yapalım */
   background-color: #7395f3;
   color: #fff;
   border: none;
@@ -235,7 +232,6 @@
 }
 
 .RightSidebarClosed .Header {
-  /*İkonu ortalamak için */
   justify-content: center;
 }
 

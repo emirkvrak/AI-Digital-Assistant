@@ -1,7 +1,5 @@
-/* file: frontend/src/features/chat/ChatPage.jsx */
-
 import { useTranslation } from "react-i18next";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Chat } from "./Chat";
@@ -16,9 +14,10 @@ import { SettingsIcon, UserIcon } from "../../components/Icons";
 import { LanguageSwitcher } from "../../components/LanguageSwitcher/LanguageSwitcher";
 import { useUserStore } from "../../store/useUserStore";
 import { toast } from "react-toastify";
+import { getPendingResources } from "../../utils/storage";
 
 function ChatPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const userEmail = useUserStore((state) => state.userEmail);
@@ -33,11 +32,16 @@ function ChatPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
   const [isAiTyping, setIsAiTyping] = useState(false);
+  const pollingRef = useRef(null);
 
-  const isUploading = useUserStore((state) => state.isUploading);
-  const setIsUploading = useUserStore((state) => state.setIsUploading);
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) {
+        clearInterval(pollingRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (aktifChatRoomId && chatRooms.length > 0) {
@@ -45,10 +49,7 @@ function ChatPage() {
         (room) => room._id === aktifChatRoomId
       );
 
-      // 🔥 LocalStorage'daki pending kaynakları oku
-      const pendingList = JSON.parse(
-        localStorage.getItem("pendingResources") || "[]"
-      );
+      const pendingList = getPendingResources();
 
       const formattedFiles = (selectedRoom?.uploaded_files || []).map(
         (file) => ({
@@ -56,7 +57,7 @@ function ChatPage() {
           displayName: file.original_name || file.title || file.source,
           original_name: file.original_name || file.title || file.source,
           raw_text: file.raw_text || "",
-          isPending: pendingList.includes(file.filename), // ✅ burada pending kontrolü yap
+          isPending: pendingList.includes(file.filename),
         })
       );
 
@@ -89,7 +90,6 @@ function ChatPage() {
         if (res.data.success) {
           const rooms = res.data.data.chat_rooms;
 
-          // ✅ Oluşturulma tarihine göre azalan sırada (yeniler en üstte)
           const sortedRooms = rooms.sort(
             (a, b) => new Date(b.created_at) - new Date(a.created_at)
           );
@@ -116,9 +116,9 @@ function ChatPage() {
     };
 
     load();
-  }, []);
+  }, [navigate, setIsAuthenticated, setUserEmail]);
 
-  const fetchMessagesForRoom = useCallback(async (roomId) => {
+  async function fetchMessagesForRoom(roomId) {
     try {
       const res = await instance.get(`/chat/fetch-messages?room_id=${roomId}`);
       if (res.data.success) {
@@ -130,7 +130,7 @@ function ChatPage() {
       console.error("Chat odası mesajları alınamadı:", error);
       setMessages([]);
     }
-  }, []); // ✅ aktifChatRoomId kaldırıldı
+  }
 
   const handleContentSend = useCallback(
     async (content, selected_files) => {
@@ -173,8 +173,16 @@ function ChatPage() {
           };
           setMessages((prev) => [...prev, newMessage]);
 
-          // ✅ AI cevabını bekle ama zaman sınırı olmadan
+          const pollingStartedAt = Date.now();
           const interval = setInterval(async () => {
+            if (Date.now() - pollingStartedAt >= 30000) {
+              clearInterval(interval);
+              pollingRef.current = null;
+              setIsAiTyping(false);
+              toast.error(t("message_send_failed"));
+              return;
+            }
+
             try {
               const response = await instance.get(
                 `/chat/fetch-messages?room_id=${currentRoomId}`
@@ -192,15 +200,18 @@ function ChatPage() {
                   });
                   setIsAiTyping(false);
                   clearInterval(interval);
+                  pollingRef.current = null;
                 }
               }
             } catch (err) {
               console.error("AI cevabı kontrol edilirken hata:", err);
               clearInterval(interval);
+              pollingRef.current = null;
               setIsAiTyping(false);
               toast.error("AI cevabı alınamadı (hata oluştu).");
             }
-          }, 1000); // ⏳ sürekli denetle ama süre sınırı yok
+          }, 1000);
+          pollingRef.current = interval;
         } else {
           toast.error(t("message_send_failed"));
           setIsAiTyping(false);
@@ -222,18 +233,15 @@ function ChatPage() {
   );
 
   const handleNewChat = useCallback(async () => {
-    // ✅ Sadece içerik taşıyan dosyalar geçerli sayılır
     const validFiles = uploadedFiles.filter(
       (f) => f.raw_text && f.raw_text.trim()
     );
 
-    // ✅ ÖN KONTROL: Hiç chatroom yoksa ve hiç geçerli dosya yoksa
     if (chatRooms.length === 0 && validFiles.length === 0) {
-      toast.warn(t("empty_chat_warning")); // "Lütfen önce bir belge yükleyin."
+      toast.warn(t("empty_chat_warning"));
       return;
     }
 
-    // ✅ Mevcut chatroom varsa bile geçerli dosya yoksa engelle
     if (validFiles.length === 0) {
       toast.warn(t("empty_chat_warning"));
       return;
@@ -270,7 +278,6 @@ function ChatPage() {
         setAktifChatRoomId(roomId);
         localStorage.setItem("active_chat_room_id", roomId);
 
-        // 1. Mesajları getir
         const res = await instance.get(
           `/chat/fetch-messages?room_id=${roomId}`
         );
@@ -281,7 +288,6 @@ function ChatPage() {
           setMessages([]);
         }
 
-        // 2. Güncel chatroom listesini çek
         const updatedRoomRes = await instance.get("/chat/fetch-chat-rooms");
         if (!updatedRoomRes.data.success) {
           toast.error(t("fetch_chat_room_failed"));
@@ -289,13 +295,10 @@ function ChatPage() {
         }
 
         const updatedRooms = updatedRoomRes.data.data.chat_rooms;
-        setChatRooms(updatedRooms); // ✅ state'i güncelle
+        setChatRooms(updatedRooms);
 
-        // 3. Seçilen odayı güncel listeden bul
         const selectedRoom = updatedRooms.find((room) => room._id === roomId);
-        const pendingList = JSON.parse(
-          localStorage.getItem("pendingResources") || "[]"
-        );
+        const pendingList = getPendingResources();
 
         const uploaded = (selectedRoom?.uploaded_files || []).map((file) => ({
           filename: file.filename,
@@ -321,14 +324,14 @@ function ChatPage() {
   const handleSignOut = useCallback(async () => {
     try {
       await instance.post("/auth/logout");
-      toast.success(t("logout_successful")); // manuel logout için ekstra toast
-    } catch (error) {
-      toast.error(t("logout_failed")); // axiosInstance zaten gösteriyor olabilir
+      toast.success(t("logout_successful"));
+    } catch {
+      toast.error(t("logout_failed"));
     } finally {
       setUserEmail("");
       setIsAuthenticated(false);
       setIsProfileMenuOpen(false);
-      navigate("/signin"); // ✅ garanti yönlendirme
+      navigate("/signin");
     }
   }, [navigate, t, setUserEmail, setIsAuthenticated]);
 
@@ -400,21 +403,13 @@ function ChatPage() {
         isRightSidebarOpen={isRightSidebarOpen}
         toggleRightSidebar={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
         aktifChatRoomId={aktifChatRoomId}
-        setAktifChatRoomId={setAktifChatRoomId} // ✅ EKLENECEK
-        chatRooms={chatRooms} // ✅ EKLENECEK
-        setChatRooms={setChatRooms} // ✅ EKLENECEK
+        setAktifChatRoomId={setAktifChatRoomId}
+        chatRooms={chatRooms}
+        setChatRooms={setChatRooms}
         uploadedFiles={uploadedFiles}
         setUploadedFiles={setUploadedFiles}
         onAutoSummarize={handleContentSend}
         isAiTyping={isAiTyping}
-        //onSummaryReceived={(summary) => {
-        //  setMessages((prev) => [...prev, {
-        //    role: "assistant",
-        //    content: summary,
-        //    created_at: new Date().toISOString()
-        //  }]);
-        //  setIsAiTyping(false);
-        //}}
       />
     </div>
   );

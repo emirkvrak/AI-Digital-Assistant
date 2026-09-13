@@ -1,8 +1,6 @@
-# file: backend/controllers/chat/chat_room_controller.py
-
 from flask import request, g, current_app
 from datetime import datetime
-from bson import ObjectId, errors as bson_errors
+from bson import ObjectId
 from bson.errors import InvalidId
 from core.database.mongo import get_users_collection, get_chat_rooms_collection, get_messages_collection, get_uploads_collection, get_documents_collection
 from core.utils.response import success_response, error_response
@@ -21,7 +19,6 @@ UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads")
 @require_auth
 def fetch_chat_rooms():
     try:
-        email = g.user_email
         rooms = chat_rooms.find({"user_id": g.user_id}).sort("created_at", -1)
 
         safe_rooms = []
@@ -49,7 +46,7 @@ def fetch_chat_rooms():
         return success_response("chat_rooms_fetched", {"chat_rooms": safe_rooms})
 
     except Exception as e:
-        current_app.logger.error(f"Fetch Chat Rooms Error: {e}")
+        current_app.logger.error(f"Sohbet odalarını getirme hatası: {e}")
         return error_response("chat_rooms_fetch_failed", 500)
 
 @require_auth
@@ -78,7 +75,7 @@ def create_new_chat():
 
             users.update_one({"_id": user["_id"]}, {"$push": {"chat_rooms": room_id}})
         except Exception as db_error:
-            current_app.logger.error(f"Mongo Error on create_new_chat: {db_error}")
+            current_app.logger.error(f"Yeni sohbet oluşturma veritabanı hatası: {db_error}")
             return error_response("chat_room_create_failed", 500)
 
         return success_response("chat_room_created", {
@@ -88,7 +85,7 @@ def create_new_chat():
         })
 
     except Exception as e:
-        current_app.logger.error(f"Create New Chat Error: {e}")
+        current_app.logger.error(f"Yeni sohbet oluşturma hatası: {e}")
         return error_response("chat_room_create_failed", 500)
 
 @require_auth
@@ -111,7 +108,6 @@ def delete_chat_room():
             return error_response("chat_room_not_found", 404)
 
         try:
-            # 1. fiziksel dosyaları sil
             to_delete = uploads.find({"chatroom_id": room_id_str})
             for file in to_delete:
                 filename = file.get("filename")
@@ -128,13 +124,13 @@ def delete_chat_room():
             delete_context_log(room_obj_id)
 
         except Exception as db_error:
-            current_app.logger.error(f"Mongo Error on delete_chat_room: {db_error}")
+            current_app.logger.error(f"Sohbet odası silme veritabanı hatası: {db_error}")
             return error_response("chat_room_delete_failed", 500)
 
         return success_response("chat_room_deleted")
 
     except Exception as e:
-        current_app.logger.error(f"Delete Chat Room Error: {e}")
+        current_app.logger.error(f"Sohbet odası silme hatası: {e}")
         return error_response("chat_room_delete_failed", 500)
 
 @require_auth
@@ -159,11 +155,11 @@ def rename_chat_room():
         try:
             chat_rooms.update_one({"_id": ObjectId(room_id)}, {"$set": {"room_name": new_name}})
         except Exception as db_error:
-            current_app.logger.error(f"Mongo Error on rename_chat_room: {db_error}")
+            current_app.logger.error(f"Sohbet odası yeniden adlandırma veritabanı hatası: {db_error}")
             return error_response("chat_room_rename_failed", 500)
 
         return success_response("chat_room_renamed")
 
     except Exception as e:
-        current_app.logger.error(f"Rename Chat Room Error: {e}")
+        current_app.logger.error(f"Sohbet odası yeniden adlandırma hatası: {e}")
         return error_response("chat_room_rename_failed", 500)

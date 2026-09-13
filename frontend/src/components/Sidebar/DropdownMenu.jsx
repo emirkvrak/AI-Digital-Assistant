@@ -13,13 +13,11 @@ const DropdownMenuComponent = ({ onRename, onDelete }) => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Eğer ref tanımlıysa ve dışarı tıklanmışsa menüyü kapat
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setOpen(false);
       }
     };
 
-    // capture fazında daha erken yakalanır, çakışmalar engellenir
     document.addEventListener("pointerdown", handleClickOutside, true);
 
     return () => {

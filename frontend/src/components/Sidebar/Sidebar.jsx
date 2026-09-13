@@ -1,5 +1,3 @@
-// file: frontend/src/components/Sidebar/Sidebar.jsx
-
 import instance from "../../api/axiosInstance";
 import { DropdownMenu } from "./DropdownMenu";
 import { useState, useCallback, memo } from "react";
@@ -7,6 +5,7 @@ import styles from "./Sidebar.module.css";
 import { useTranslation } from "react-i18next";
 import { Button } from "../Shared/Button";
 import { FolderIcon, ChatRoomIcon } from "../Icons";
+import { getPendingResources } from "../../utils/storage";
 import { toast } from "react-toastify";
 import { useUserStore } from "../../store/useUserStore";
 
@@ -26,8 +25,6 @@ const SidebarComponent = ({
   const [editingRoomId, setEditingRoomId] = useState(null);
   const [newRoomName, setNewRoomName] = useState("");
   const { t } = useTranslation();
-  const isUploading = useUserStore((state) => state.isUploading);
-
   const validFiles =
     uploadedFiles?.filter((file) => file.raw_text && file.raw_text.trim()) ||
     [];
@@ -48,9 +45,7 @@ const SidebarComponent = ({
 
   const handleDeleteChatRoom = useCallback(
     async (roomId) => {
-      const pendingList = JSON.parse(
-        localStorage.getItem("pendingResources") || "[]"
-      );
+      const pendingList = getPendingResources();
       const isUploading = useUserStore.getState().isUploading;
 
       const hasPendingForThisRoom = uploadedFiles.some(
@@ -89,7 +84,6 @@ const SidebarComponent = ({
                 setAktifChatRoomId(fallbackRoom._id);
                 localStorage.setItem("active_chat_room_id", fallbackRoom._id);
 
-                // Yeni aktif oda için mesajları getir
                 instance
                   .get(`/chat/fetch-messages?room_id=${fallbackRoom._id}`)
                   .then((res) => {
@@ -117,7 +111,7 @@ const SidebarComponent = ({
         } else {
           toast.error(t("room_delete_failed") + ": " + res.data.message);
         }
-      } catch (error) {
+      } catch {
         toast.error(t("room_delete_error"));
       }
     },
@@ -155,7 +149,7 @@ const SidebarComponent = ({
         } else {
           toast.error(t("room_rename_failed") + ": " + res.data.message);
         }
-      } catch (error) {
+      } catch {
         toast.error(t("room_rename_error"));
       }
     },

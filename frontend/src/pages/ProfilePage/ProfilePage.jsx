@@ -1,5 +1,3 @@
-/* file: frontend/src/pages/ProfilePage/ProfilePage.jsx */
-
 import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -13,7 +11,7 @@ import { FormWrapper } from "../../components/Shared/FormWrapper";
 import { EyeIcon, EyeOffIcon } from "../../components/Icons";
 import { useUserStore } from "../../store/useUserStore";
 
-import { toast } from "react-toastify"; // ✅ toast import
+import { toast } from "react-toastify";
 
 function ProfilePage() {
   const { t } = useTranslation();
@@ -36,7 +34,7 @@ function ProfilePage() {
         new_password: newPassword
       });
 
-      toast.success(response.data.message || t('password_changed_successfully')); // ✅
+      toast.success(response.data.message || t('password_changed_successfully'));
       setOldPassword("");
       setNewPassword("");
     } catch (error) {

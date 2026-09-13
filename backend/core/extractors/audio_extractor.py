@@ -1,16 +1,13 @@
-# file: backend/core/extractors/audio_extractor.py
-
 from core.extractors.base_extractor import BaseExtractor
-import requests
-import uuid
 import os
 import time
 import tempfile
+from core.utils.http_client import http_client
 
 class AudioExtractor(BaseExtractor):
     def __init__(self, file_stream, language_code=None):
         super().__init__(file_stream)
-        self.language_code = language_code  # None → otomatik algılama
+        self.language_code = language_code
 
     def extract_text(self) -> str:
         temp_path = None
@@ -30,7 +27,7 @@ class AudioExtractor(BaseExtractor):
                 temp_path = tmp.name
 
             with open(temp_path, "rb") as f:
-                upload_res = requests.post(
+                upload_res = http_client.post(
                     "https://api.assemblyai.com/v2/upload",
                     headers={"authorization": API_KEY},
                     data=f
@@ -43,12 +40,11 @@ class AudioExtractor(BaseExtractor):
             if not upload_url:
                 raise Exception(f"AssemblyAI upload yanıtı eksik: {upload_res.text}")
 
-            # ✅ language_code sadece geçerliyse ekle
             transcript_payload = {"audio_url": upload_url}
             if self.language_code and self.language_code not in ["auto", ""]:
                 transcript_payload["language_code"] = self.language_code
 
-            transcript_res = requests.post(
+            transcript_res = http_client.post(
                 "https://api.assemblyai.com/v2/transcript",
                 json=transcript_payload,
                 headers=headers
@@ -61,7 +57,7 @@ class AudioExtractor(BaseExtractor):
             transcript_id = transcript_res.json()["id"]
 
             while True:
-                poll_res = requests.get(
+                poll_res = http_client.get(
                     f"https://api.assemblyai.com/v2/transcript/{transcript_id}",
                     headers=headers
                 ).json()
@@ -74,7 +70,7 @@ class AudioExtractor(BaseExtractor):
                 time.sleep(3)
 
         except Exception as e:
-            print(f"❌ AudioExtractor HATA: {e}")
+            print(f"❌ Ses metni çıkarma hatası: {e}")
             return ""
 
         finally:

@@ -1,8 +1,5 @@
-# file: backend/services/auth/auth_service.py
-
 import re
 import jwt
-import requests
 from flask import current_app
 from datetime import datetime, timedelta
 
@@ -13,6 +10,7 @@ from core.mail.mail import send_email
 from core.security.security import decode_token
 
 from core.mail.templates import email_texts
+from core.utils.http_client import http_client
 
 users = get_users_collection()
 
@@ -48,7 +46,7 @@ def register_user(first_name, last_name, email, password, app, lang="tr"):
         send_verification_email(email, app, lang)
 
     except Exception as e:
-        current_app.logger.error(f"❌ Registration rollback: {e}")
+        current_app.logger.error(f"❌ Kayıt geri alma hatası: {e}")
         users.delete_one({"email": email})
         return {"success": False, "message": "email_send_failed", "status_code": 500}
 
@@ -161,10 +159,10 @@ def reset_password(token, new_password):
     try:
         hashed_pw = hash_password(new_password)
         users.update_one({"email": email}, {"$set": {"password": hashed_pw}})
-        current_app.logger.info(f"Password reset successful for user: {email}")
+        current_app.logger.info(f"Şifre sıfırlama başarılı: {email}")
         return {"success": True, "message": "password_reset_success"}
     except Exception as e:
-        current_app.logger.error(f"❌ Password update error: {e}")
+        current_app.logger.error(f"❌ Şifre güncelleme hatası: {e}")
         return {"success": False, "message": "password_update_failed", "status_code": 500}
 
 
@@ -176,7 +174,7 @@ def google_login_service(google_token):
     }
 
     try:
-        response = requests.get(
+        response = http_client.get(
             f"https://oauth2.googleapis.com/tokeninfo?id_token={google_token}",
             headers={"Content-Type": "application/json"}
         )
@@ -204,7 +202,7 @@ def google_login_service(google_token):
                 users.insert_one(new_user)
                 user = users.find_one({"email": email})
             except Exception as e:
-                current_app.logger.error(f"❌ Google user insert error: {e}")
+                current_app.logger.error(f"❌ Google kullanıcısı eklenemedi: {e}")
                 return None, None, None, {
                     "success": False,
                     "message": "google_register_failed",
@@ -220,7 +218,7 @@ def google_login_service(google_token):
         }
 
     except Exception as e:
-        current_app.logger.error(f"Google Login Error: {e}")
+        current_app.logger.error(f"Google ile giriş hatası: {e}")
         return None, None, None, {
             "success": False,
             "message": "google_login_error",

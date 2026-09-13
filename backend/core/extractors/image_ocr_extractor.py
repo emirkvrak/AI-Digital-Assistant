@@ -1,5 +1,3 @@
-# file: backend/core/extractors/image_ocr_extractor.py
-
 from core.extractors.base_extractor import BaseExtractor
 from google.cloud import vision
 import io
@@ -10,7 +8,6 @@ from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from pathlib import Path
 
-# ✅ Ortam değişkenlerini yükle
 load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -19,7 +16,6 @@ OCR_LIMIT = 950
 
 def check_and_increment_ocr_usage():
     try:
-        # 🔒 Klasör yoksa oluştur
         os.makedirs(USAGE_FILE.parent, exist_ok=True)
 
         if not USAGE_FILE.exists():
@@ -52,7 +48,6 @@ def check_and_increment_ocr_usage():
 class ImageOCRExtractor(BaseExtractor):
     def extract_text(self) -> str:
         try:
-            # OCR anahtarını yalnızca OCR gerçekten kullanıldığında kontrol et.
             raw_credential_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
             if not raw_credential_path:
                 raise EnvironmentError("Google Vision OCR anahtarı ayarlanmamış.")
@@ -83,5 +78,5 @@ class ImageOCRExtractor(BaseExtractor):
             return cleaned_text
 
         except Exception as e:
-            print(f"❌ ImageOCRExtractor HATA: {e}")
+            print(f"❌ Görselden metin çıkarma hatası: {e}")
             return ""

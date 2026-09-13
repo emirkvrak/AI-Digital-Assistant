@@ -16,7 +16,12 @@ __pycache__/
 *.py[cod]
 *.pyd
 .pytest_cache/
+**/.pytest_cache/
 .mypy_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+*.coverage
+*.egg-info/
 
 # Node
 node_modules/
@@ -25,6 +30,7 @@ dist/
 **/dist/
 coverage/
 *.tsbuildinfo
+**/.vite/
 
 # Runtime data and logs
 *.log
@@ -33,6 +39,12 @@ coverage/
 **/uploads/*
 !**/uploads/.gitkeep
 **/qa_prompt_log.txt
+*.sqlite
+*.sqlite3
+*.db
+*.bak
+*.tmp
+*.pid
 
 # Editors and OS files
 .vscode/*
@@ -41,6 +53,8 @@ coverage/
 .DS_Store
 Thumbs.db
 *.swp
+*.swo
+*.code-workspace
 
 # Local Docker data
 *.mongodb/

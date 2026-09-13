@@ -1,5 +1,3 @@
-# file: backend/controllers/upload/upload_controller.py
-
 from flask import Blueprint, request, jsonify
 from core.security.auth_decorator import require_auth
 from services.upload.upload_service import handle_upload_pipeline

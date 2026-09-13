@@ -10,7 +10,6 @@ const ChatMessage = ({ content }) => {
         remarkPlugins={[remarkGfm]}
         components={{
           p({ node, children }) {
-            // Eğer paragraf yalnızca tablo içeriyorsa <p> sarmalamasını kaldır
             const hasOnlyTable = node.children.length === 1 && node.children[0].tagName === "table";
             if (hasOnlyTable) return <>{children}</>;
 

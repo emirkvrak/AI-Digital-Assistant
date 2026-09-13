@@ -1,5 +1,3 @@
-// file: frontend/src/api/documentApi.js
-
 import axiosInstance from './axiosInstance';
 import i18n from '../locales/i18n';
 
@@ -15,18 +13,14 @@ export const uploadDocumentAndGetSummary = async (file, aktifChatRoomId) => {
     });
 
     return {
-      summary: response.data.summary, // (opsiyonel)
+      summary: response.data.summary,
       filename: response.data.filename,
       original_name: response.data.original_name,
       raw_text: response.data.raw_text
     };
   } catch (error) {
     console.error("📛 uploadDocumentAndGetSummary error:", error?.response?.data || error.message);
-    throw error; // 🔥 çağıran bileşen tarafından try/catch ile yakalanmalı
+    throw error;
   }
 };
 
-export const getUserDocuments = async () => {
-  const response = await axiosInstance.get("/documents/user");
-  return response.data.documents;
-};

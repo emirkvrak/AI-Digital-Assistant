@@ -1,5 +1,3 @@
-/* file: frontend/src/pages/ResetPassword/ResetPassword.jsx */
-
 import { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -30,7 +28,7 @@ const ResetPassword = () => {
         return;
       }
 
-      const response = await instance.post("/auth/reset-password", {
+      await instance.post("/auth/reset-password", {
         token,
         new_password: newPassword,
       });

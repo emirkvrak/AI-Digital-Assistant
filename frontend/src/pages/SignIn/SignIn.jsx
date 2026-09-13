@@ -1,12 +1,10 @@
-/* file:frontend/src/pages/SignIn/SignIn.jsx */
-
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
 
 import instance from "../../api/axiosInstance";
-import styles from "./SignIn.module.css"; // ya da SignUp.module.css
+import styles from "./SignIn.module.css";
 
 import { Button } from "../../components/Shared/Button";
 import { Input } from "../../components/Shared/Input";
@@ -16,8 +14,10 @@ import { EyeIcon, EyeOffIcon } from "../../components/Icons";
 import { useUserStore } from "../../store/useUserStore";
 import { toast } from "react-toastify";
 
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
 const SignIn = () => {
-  const { t } = useTranslation(); // i18n hook
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
@@ -35,8 +35,8 @@ const SignIn = () => {
       });
 
       if (response.data.success) {
-        setUserEmail(response.data.data.email); // Zustand'a yaz
-        setIsAuthenticated(true); // Zustand'a yaz
+        setUserEmail(response.data.data.email);
+        setIsAuthenticated(true);
         navigate("/chat");
       }
     } catch (error) {
@@ -54,8 +54,8 @@ const SignIn = () => {
       );
 
       if (response.data.success) {
-        setUserEmail(response.data.data.email); // Zustand'a yaz
-        setIsAuthenticated(true); // Zustand'a yaz
+        setUserEmail(response.data.data.email);
+        setIsAuthenticated(true);
         navigate("/chat");
       }
     } catch (error) {
@@ -80,16 +80,18 @@ const SignIn = () => {
           className={styles["social-buttons"]}
           style={{ position: "relative" }}
         >
-          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-            <GoogleLogin
-              onSuccess={(credentialResponse) => {
-                handleGoogleLogin(credentialResponse.credential);
-              }}
-              onError={() => {
-                console.log("Google Login Failed");
-              }}
-            />
-          </GoogleOAuthProvider>
+          {googleClientId && (
+            <GoogleOAuthProvider clientId={googleClientId}>
+              <GoogleLogin
+                onSuccess={(credentialResponse) => {
+                  handleGoogleLogin(credentialResponse.credential);
+                }}
+                onError={() => {
+                  toast.error(t("google_login_failed"));
+                }}
+              />
+            </GoogleOAuthProvider>
+          )}
         </div>
 
         <p>{t("or_continue_with_email")}</p>

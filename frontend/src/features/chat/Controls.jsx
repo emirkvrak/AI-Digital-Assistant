@@ -1,5 +1,3 @@
-/* file: frontend/src/features/chat/Controls.jsx */
-
 import { useState, useCallback } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import styles from "./Controls.module.css";
@@ -13,7 +11,6 @@ const ControlsComponent = ({ onSend, isAiTyping, aktifChatRoomId, uploadedFiles 
   const [content, setContent] = useState("");
   const [isSending, setIsSending] = useState(false);
 
-  // ✅ Yalnızca raw_text içeren dosyaları geçerli say
   const validFiles = uploadedFiles.filter(file => file.raw_text && file.raw_text.trim());
 
   const handleContentChange = useCallback((event) => {
@@ -39,7 +36,6 @@ const ControlsComponent = ({ onSend, isAiTyping, aktifChatRoomId, uploadedFiles 
       return;
     }
 
-    // ✅ SADECE checkbox ile seçilen dosyaları al
     const selectedFiles = validFiles
       .filter(file => file.selected)
       .map(file => file.filename);
@@ -51,7 +47,7 @@ const ControlsComponent = ({ onSend, isAiTyping, aktifChatRoomId, uploadedFiles 
 
     try {
       setIsSending(true);
-      await onSend(content.trim(), selectedFiles); // ✅ seçilen dosyaları ilet
+      await onSend(content.trim(), selectedFiles);
       setContent("");
     } catch (e) {
       console.error("Mesaj gönderim hatası:", e);
@@ -68,7 +64,6 @@ const ControlsComponent = ({ onSend, isAiTyping, aktifChatRoomId, uploadedFiles 
     }
   }, [handleContentSend]);
 
-  // ✅ Dinamik placeholder
   const getPlaceholder = () => {
     if (isAiTyping) return t("waiting_for_response");
     if (uploadedFiles.some(file => file.isPending)) return t("document_upload_in_progress");

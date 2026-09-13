@@ -1,8 +1,5 @@
-/* file: frontend/src/pages/ForgotPassword/ForgotPassword.jsx */
-
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import instance from "../../api/axiosInstance";
 import styles from "./ForgotPassword.module.css";
 
@@ -14,18 +11,17 @@ import { toast } from "react-toastify";
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const { t, i18n  } = useTranslation();
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await instance.post("/auth/forgot-password", {
+      await instance.post("/auth/forgot-password", {
         email,
-        lang: i18n.language // 🌍 aktif dili gönderiyoruz
+        lang: i18n.language
       });
 
-      toast.success(t("reset_link_sent")); // ✅ Success mesajı
+      toast.success(t("reset_link_sent"));
       setEmail("");
     } catch (error) {
       console.error("Şifre sıfırlama isteği hatası:", error);

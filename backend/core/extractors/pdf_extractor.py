@@ -1,6 +1,4 @@
-# file: backend/core/extractors/pdf_extractor.py
-
-import fitz  # PyMuPDF
+import fitz
 from core.extractors.base_extractor import BaseExtractor
 
 class PDFExtractor(BaseExtractor):
@@ -16,5 +14,5 @@ class PDFExtractor(BaseExtractor):
 
             return " ".join(full_text.split()).strip()
         except Exception as e:
-            print(f"❌ PDFExtractor HATA: {e}")
+            print(f"❌ PDF metni çıkarma hatası: {e}")
             return ""

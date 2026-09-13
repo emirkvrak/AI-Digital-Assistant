@@ -1,5 +1,3 @@
-# file: backend/controllers/document/document_controller.py
-
 from flask import Blueprint, g, current_app
 from core.security.auth_decorator import require_auth
 from core.database.mongo import get_documents_collection

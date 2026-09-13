@@ -1,5 +1,3 @@
-# file: backend/core/extractors/pptx_extractor.py
-
 from core.extractors.base_extractor import BaseExtractor
 from pptx import Presentation
 
@@ -17,5 +15,5 @@ class PPTXExtractor(BaseExtractor):
                             text_parts.append(txt)
             return " ".join(" ".join(text_parts).split())
         except Exception as e:
-            print(f"❌ PPTXExtractor HATA: {e}")
+            print(f"❌ Sunum metni çıkarma hatası: {e}")
             return ""
